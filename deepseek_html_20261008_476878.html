@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="theme-color" content="#0f0c29">
+<title>Своя игра • Вероятность и статистика (3 команды, 42 вопроса)</title>
+<style>
+/* ============================================================
+   ПЕРЕМЕННЫЕ И БАЗОВЫЕ СТИЛИ
+   ============================================================ */
+:root{
+  --pink:#ff2e63;
+  --cyan:#08d9d6;
+  --purple:#a86bff;
+  --yellow:#ffd93d;
+  --green:#00e08a;
+  --orange:#ff9a3c;
+  --bg:#0f0c29;
+  --glass:rgba(255,255,255,.07);
+  --glass-strong:rgba(255,255,255,.12);
+  --border:rgba(255,255,255,.15);
+  --text:#f5f4ff;
+  --muted:#a9a6c9;
+  --radius:20px;
+
+  --t0:#ff2e63;
+  --t1:#08d9d6;
+  --t2:#a86bff;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+
+html,body{min-height:100%}
+
+body{
+  font-family:'Segoe UI',system-ui,-apple-system,'Roboto','Helvetica Neue',sans-serif;
+  color:var(--text);
+  background:var(--bg);
+  background-image:
+    radial-gradient(circle at 12% 15%, rgba(255,46,99,.35), transparent 42%),
+    radial-gradient(circle at 88% 12%, rgba(8,217,214,.28), transparent 45%),
+    radial-gradient(circle at 50% 100%, rgba(168,107,255,.38), transparent 55%),
+    radial-gradient(circle at 80% 70%, rgba(255,217,61,.15), transparent 45%);
+  background-attachment:fixed;
+  min-height:100vh;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  padding:14px;
+  overflow-x:hidden;
+}
+
+/* ============================================================
+   ЭКРАНЫ
+   ============================================================ */
+.screen{
+  display:none;
+  width:100%;
+  max-width:1500px;
+  animation:fadeUp .45s cubic-bezier(.22,1,.36,1);
+}
+.screen.active{display:block}
+
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(18px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes pop{
+  0%{opacity:0;transform:scale(.9) translateY(14px)}
+  100%{opacity:1;transform:scale(1) translateY(0)}
+}
+@keyframes pulseGlow{
+  0%,100%{box-shadow:0 0 0 0 rgba(255,46,99,.5)}
+  50%{box-shadow:0 0 0 14px rgba(255,46,99,0)}
+}
+
+/* ============================================================
+   КНОПКИ
+   ============================================================ */
+.btn{
+  font-family:inherit;
+  font-size:1rem;
+  font-weight:700;
+  border:none;
+  border-radius:14px;
+  padding:14px 26px;
+  cursor:pointer;
+  transition:transform .16s ease, box-shadow .2s ease, filter .2s ease;
+  color:#14102b;
+  letter-spacing:.2px;
+}
+.btn:active{transform:scale(.97)}
+
+.btn-primary{
+  background:linear-gradient(135deg,var(--yellow),#ff9a3c);
+  box-shadow:0 8px 26px rgba(255,154,60,.4);
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(255,154,60,.55)}
+
+.btn-ghost{
+  background:var(--glass);
+  border:1px solid var(--border);
+  color:var(--text);
+  box-shadow:none;
+}
+.btn-ghost:hover{background:var(--glass-strong);transform:translateY(-2px)}
+
+.btn.small{padding:9px 16px;font-size:.85rem;border-radius:11px}
+
+.btn-award-0{
+  background:linear-gradient(135deg,#ff2e63,#ff8a5c);
+  color:#fff;
+  box-shadow:0 8px 24px rgba(255,46,99,.4);
+}
+.btn-award-1{
+  background:linear-gradient(135deg,#08d9d6,#4facfe);
+  color:#062a2a;
+  box-shadow:0 8px 24px rgba(8,217,214,.4);
+}
+.btn-award-2{
+  background:linear-gradient(135deg,#a86bff,#ff5edb);
+  color:#fff;
+  box-shadow:0 8px 24px rgba(168,107,255,.45);
+}
+.btn-award-0:hover,.btn-award-1:hover,.btn-award-2:hover{transform:translateY(-2px)}
+
+/* ============================================================
+   СТАРТОВЫЙ ЭКРАН
+   ============================================================ */
+.card{
+  background:linear-gradient(160deg, rgba(40,34,86,.92), rgba(20,16,46,.94));
+  border:1px solid var(--border);
+  border-radius:28px;
+  padding:34px 30px;
+  box-shadow:0 30px 90px rgba(0,0,0,.55);
+  backdrop-filter:blur(14px);
+}
+
+.start-card{
+  max-width:860px;
+  margin:0 auto;
+  text-align:center;
+}
+
+.logo-emoji{
+  font-size:3.6rem;
+  line-height:1;
+  display:block;
+  margin-bottom:6px;
+  filter:drop-shadow(0 6px 18px rgba(255,46,99,.5));
+}
+
+h1{
+  font-size:clamp(1.7rem,4.5vw,2.7rem);
+  font-weight:800;
+  letter-spacing:-.5px;
+  background:linear-gradient(100deg,#ff2e63,#ffd93d,#08d9d6,#a86bff);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  background-size:220% auto;
+  animation:shine 7s linear infinite;
+}
+@keyframes shine{to{background-position:220% center}}
+
+.subtitle{
+  color:var(--muted);
+  font-size:1.02rem;
+  margin-top:8px;
+  font-weight:500;
+}
+
+.rules{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+  gap:12px;
+  margin:26px 0;
+  text-align:left;
+}
+.rule{
+  display:flex;
+  gap:11px;
+  align-items:flex-start;
+  background:var(--glass);
+  border:1px solid var(--border);
+  border-radius:15px;
+  padding:13px 15px;
+  font-size:.92rem;
+  line-height:1.4;
+  color:#ddd9f7;
+}
+.rule .ico{font-size:1.25rem;line-height:1.2}
+
+.team-inputs{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+  margin-bottom:24px;
+}
+@media(max-width:720px){.team-inputs{grid-template-columns:1fr}}
+
+.team-inputs label{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  font-size:.83rem;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.8px;
+  color:var(--muted);
+  text-align:left;
+}
+.team-inputs input{
+  font-family:inherit;
+  font-size:1.02rem;
+  font-weight:600;
+  padding:13px 15px;
+  border-radius:13px;
+  border:1px solid var(--border);
+  background:rgba(0,0,0,.28);
+  color:var(--text);
+  outline:none;
+  transition:border-color .2s, box-shadow .2s;
+  width:100%;
+}
+.team-inputs input:focus{
+  border-color:var(--cyan);
+  box-shadow:0 0 0 3px rgba(8,217,214,.22);
+}
+#team1{color:#ffb0c4}
+#team2{color:#9df3f1}
+#team3{color:#d3b8ff}
+
+.start-actions{display:flex;flex-direction:column;gap:12px;align-items:center}
+.start-actions .btn{width:100%;max-width:340px;font-size:1.08rem;padding:16px 26px}
+
+/* ============================================================
+   ИГРОВОЙ ЭКРАН — HUD
+   ============================================================ */
+.hud{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  flex-wrap:wrap;
+  background:var(--glass);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:12px 16px;
+  margin-bottom:14px;
+  backdrop-filter:blur(12px);
+}
+
+.hud-timer{
+  font-size:1.5rem;
+  font-weight:800;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:1px;
+  color:var(--green);
+  min-width:104px;
+  text-shadow:0 0 18px rgba(0,224,138,.5);
+  transition:color .3s;
+}
+.hud-timer.low{color:var(--pink);animation:pulseGlow 1.2s infinite;border-radius:12px}
+
+.hud-progress{
+  flex:1;
+  min-width:170px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.progress-bar{
+  flex:1;
+  height:11px;
+  border-radius:99px;
+  background:rgba(0,0,0,.4);
+  overflow:hidden;
+  border:1px solid var(--border);
+}
+.progress-fill{
+  height:100%;
+  width:0%;
+  border-radius:99px;
+  background:linear-gradient(90deg,var(--pink),var(--yellow),var(--cyan));
+  transition:width .5s cubic-bezier(.4,0,.2,1);
+}
+#progress-text{
+  font-size:.86rem;
+  font-weight:700;
+  color:var(--muted);
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+
+/* ============================================================
+   ТАБЛО ТРЁХ КОМАНД
+   ============================================================ */
+.scoreboard{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+  margin-bottom:12px;
+}
+.team-card{
+  border-radius:18px;
+  padding:13px 16px;
+  border:2px solid transparent;
+  background:var(--glass);
+  transition:all .3s cubic-bezier(.4,0,.2,1);
+  position:relative;
+  overflow:hidden;
+}
+.team-card::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  opacity:0;
+  transition:opacity .3s;
+  pointer-events:none;
+}
+.team-card.t0::after{background:linear-gradient(120deg,rgba(255,46,99,.25),transparent 70%)}
+.team-card.t1::after{background:linear-gradient(120deg,rgba(8,217,214,.25),transparent 70%)}
+.team-card.t2::after{background:linear-gradient(120deg,rgba(168,107,255,.25),transparent 70%)}
+.team-card.active::after{opacity:1}
+.team-card.t0.active{border-color:var(--t0);box-shadow:0 0 28px rgba(255,46,99,.4);transform:translateY(-2px)}
+.team-card.t1.active{border-color:var(--t1);box-shadow:0 0 28px rgba(8,217,214,.4);transform:translateY(-2px)}
+.team-card.t2.active{border-color:var(--t2);box-shadow:0 0 28px rgba(168,107,255,.4);transform:translateY(-2px)}
+
+.team-name{
+  font-size:.82rem;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.8px;
+  color:var(--muted);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  position:relative;
+}
+.team-card.t0.active .team-name{color:#ffb0c4}
+.team-card.t1.active .team-name{color:#9df3f1}
+.team-card.t2.active .team-name{color:#d3b8ff}
+.team-score{
+  font-size:clamp(1.4rem,3.6vw,2.1rem);
+  font-weight:800;
+  font-variant-numeric:tabular-nums;
+  line-height:1.1;
+  position:relative;
+}
+.team-card.t0 .team-score{color:#ff6b8b}
+.team-card.t1 .team-score{color:#5ef0ee}
+.team-card.t2 .team-score{color:#c79bff}
+
+.turn-banner{
+  text-align:center;
+  font-size:1rem;
+  padding:10px;
+  border-radius:14px;
+  background:linear-gradient(90deg,rgba(255,46,99,.16),rgba(168,107,255,.16),rgba(8,217,214,.16));
+  border:1px solid var(--border);
+  margin-bottom:16px;
+  color:#e6e2ff;
+}
+.turn-banner b{color:var(--yellow)}
+
+/* ============================================================
+   ИГРОВОЕ ПОЛЕ (6 колонок × 7 вопросов = 42)
+   ============================================================ */
+.board-wrap{
+  overflow-x:auto;
+  padding-bottom:6px;
+}
+.board{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:10px;
+  min-width:920px;   /* при нехватке места — горизонтальный скролл */
+}
+@media(min-width:1200px){ .board{min-width:0} }
+
+.cat-col{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  background:var(--glass);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:7px;
+  backdrop-filter:blur(10px);
+}
+
+.cat-title{
+  min-height:72px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:3px;
+  text-align:center;
+  font-size:.72rem;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.3px;
+  line-height:1.2;
+  padding:6px 4px;
+  color:#efeaff;
+}
+.cat-icon{font-size:1.3rem}
+
+.q-btn{
+  font-family:inherit;
+  border:none;
+  border-radius:12px;
+  padding:12px 6px;
+  font-size:1.06rem;
+  font-weight:800;
+  font-variant-numeric:tabular-nums;
+  color:#14102b;
+  cursor:pointer;
+  background:linear-gradient(135deg,var(--a),var(--b));
+  box-shadow:0 5px 16px rgba(0,0,0,.35);
+  transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .2s, filter .2s;
+  position:relative;
+}
+.q-btn:hover:not(:disabled){
+  transform:translateY(-3px) scale(1.04);
+  box-shadow:0 12px 30px rgba(0,0,0,.5);
+  filter:brightness(1.1);
+}
+.q-btn:active:not(:disabled){transform:scale(.97)}
+.q-btn:disabled{
+  cursor:default;
+  background:rgba(255,255,255,.06);
+  color:rgba(255,255,255,.25);
+  box-shadow:none;
+  border:1px dashed rgba(255,255,255,.15);
+}
+
+/* ============================================================
+   МОДАЛЬНОЕ ОКНО ВОПРОСА
+   ============================================================ */
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(8,6,24,.85);
+  backdrop-filter:blur(7px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:14px;
+  z-index:100;
+}
+.modal-overlay.show{display:flex;animation:fadeUp .22s ease}
+
+.modal{
+  width:min(820px,100%);
+  max-height:92vh;
+  overflow-y:auto;
+  background:linear-gradient(160deg,#2a2456,#16122f);
+  border:1px solid var(--border);
+  border-radius:26px;
+  padding:24px;
+  box-shadow:0 30px 90px rgba(0,0,0,.7);
+  animation:pop .32s cubic-bezier(.2,1.3,.5,1);
+}
+
+.modal-top{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:18px;
+}
+.cat-badge{
+  flex:1;
+  min-width:130px;
+  font-size:.8rem;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.6px;
+  color:var(--muted);
+  background:rgba(0,0,0,.3);
+  border:1px solid var(--border);
+  border-radius:11px;
+  padding:8px 13px;
+}
+.q-value{
+  font-size:.86rem;
+  font-weight:800;
+  color:#14102b;
+  background:linear-gradient(135deg,var(--yellow),#ff9a3c);
+  border-radius:11px;
+  padding:8px 14px;
+  white-space:nowrap;
+}
+.q-timer{
+  font-size:1.15rem;
+  font-weight:800;
+  font-variant-numeric:tabular-nums;
+  color:var(--green);
+  background:rgba(0,224,138,.1);
+  border:1px solid rgba(0,224,138,.3);
+  border-radius:11px;
+  padding:6px 13px;
+  white-space:nowrap;
+  transition:all .25s;
+}
+.q-timer.low{
+  color:#fff;
+  background:rgba(255,46,99,.85);
+  border-color:var(--pink);
+  animation:pulseGlow 1s infinite;
+}
+
+.q-text{
+  font-size:clamp(1.05rem,2.6vw,1.4rem);
+  font-weight:600;
+  line-height:1.55;
+  margin-bottom:20px;
+  color:#fff;
+}
+
+.answer-box{
+  display:none;
+  background:linear-gradient(135deg,rgba(0,224,138,.14),rgba(8,217,214,.1));
+  border:1px solid rgba(0,224,138,.4);
+  border-left:5px solid var(--green);
+  border-radius:16px;
+  padding:16px 18px;
+  margin-bottom:20px;
+  animation:fadeUp .3s ease;
+}
+.answer-box.show{display:block}
+.answer-label{
+  font-size:.74rem;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:1.2px;
+  color:var(--green);
+  margin-bottom:7px;
+}
+#answer-text{
+  font-size:1.1rem;
+  font-weight:700;
+  line-height:1.5;
+  color:#c9ffe9;
+}
+
+.modal-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.modal-actions.hidden{display:none}
+.modal-actions .btn{flex:1;min-width:120px}
+
+/* ============================================================
+   ЭКРАН РЕЗУЛЬТАТОВ
+   ============================================================ */
+.results-card{
+  max-width:740px;
+  margin:0 auto;
+  text-align:center;
+}
+.winner{
+  font-size:clamp(1.3rem,3.6vw,1.9rem);
+  font-weight:800;
+  margin:18px 0 26px;
+  color:var(--yellow);
+  text-shadow:0 0 26px rgba(255,217,61,.5);
+}
+.res-teams{display:flex;flex-direction:column;gap:14px;margin-bottom:26px}
+.res-team{
+  background:var(--glass);
+  border:1px solid var(--border);
+  border-radius:17px;
+  padding:15px 18px;
+  text-align:left;
+  position:relative;
+}
+.res-team.rank-1{border-color:rgba(255,217,61,.6);box-shadow:0 0 24px rgba(255,217,61,.2)}
+.res-team-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  margin-bottom:6px;
+}
+.res-team-name{
+  font-size:.92rem;
+  font-weight:800;
+  letter-spacing:.4px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.res-rank{
+  font-size:1.15rem;
+  line-height:1;
+}
+.res-team-score{
+  font-size:1.5rem;
+  font-weight:800;
+  font-variant-numeric:tabular-nums;
+  margin-bottom:9px;
+}
+.res-bar{
+  height:9px;
+  border-radius:99px;
+  background:rgba(0,0,0,.4);
+  overflow:hidden;
+}
+.res-bar-fill{
+  height:100%;
+  border-radius:99px;
+  transition:width .8s cubic-bezier(.4,0,.2,1);
+}
+.res-note{
+  font-size:.92rem;
+  color:var(--muted);
+  line-height:1.6;
+  margin-bottom:24px;
+}
+
+/* ============================================================
+   АДАПТИВ
+   ============================================================ */
+@media(max-width:600px){
+  body{padding:9px}
+  .card{padding:24px 18px;border-radius:22px}
+  .hud{padding:10px 12px;gap:10px}
+  .hud-timer{font-size:1.25rem;min-width:88px}
+  .team-card{padding:10px 11px}
+  .team-name{font-size:.72rem}
+  .team-score{font-size:1.35rem}
+  .q-btn{padding:10px 6px;font-size:.98rem}
+  .cat-title{font-size:.66rem;min-height:62px}
+  .modal{padding:18px;border-radius:20px}
+  .modal-actions .btn{min-width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     ЭКРАН 1 — СТАРТ
+     ============================================================ -->
+<section class="screen active" id="screen-start">
+  <div class="card start-card">
+    <span class="logo-emoji">🎲</span>
+    <h1>СВОЯ ИГРА</h1>
+    <p class="subtitle">Вероятность и статистика • 7–8 класс • 3 команды</p>
+
+    <div class="rules">
+      <div class="rule"><span class="ico">👥</span><span>Играют <b>3 команды</b>. Ход переходит по очереди.</span></div>
+      <div class="rule"><span class="ico">🧩</span><span><b>6 тем</b> по 7 вопросов — всего <b>42 задания</b>.</span></div>
+      <div class="rule"><span class="ico">⏱</span><span>На всю игру — <b>60 минут</b>, на обсуждение вопроса — <b>60 секунд</b>.</span></div>
+      <div class="rule"><span class="ico">🏆</span><span>Верный ответ приносит команде очки. Побеждает тот, у кого их больше!</span></div>
+    </div>
+
+    <div class="team-inputs">
+      <label>Команда 1
+        <input type="text" id="team1" value="Команда 1" maxlength="18" autocomplete="off">
+      </label>
+      <label>Команда 2
+        <input type="text" id="team2" value="Команда 2" maxlength="18" autocomplete="off">
+      </label>
+      <label>Команда 3
+        <input type="text" id="team3" value="Команда 3" maxlength="18" autocomplete="off">
+      </label>
+    </div>
+
+    <div class="start-actions">
+      <button class="btn btn-primary" id="btn-start">🚀 Начать игру</button>
+      <button class="btn btn-ghost" id="btn-continue" style="display:none">⏯ Продолжить сохранённую игру</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     ЭКРАН 2 — ИГРА
+     ============================================================ -->
+<section class="screen" id="screen-game">
+  <div class="hud">
+    <div class="hud-timer" id="hud-timer">60:00</div>
+    <div class="hud-progress">
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <span id="progress-text">0 / 42</span>
+    </div>
+    <button class="btn btn-ghost small" id="btn-new">↺ Новая игра</button>
+  </div>
+
+  <div class="scoreboard">
+    <div class="team-card t0" id="team-card-0">
+      <div class="team-name" id="team-name-0">Команда 1</div>
+      <div class="team-score" id="team-score-0">0</div>
+    </div>
+    <div class="team-card t1" id="team-card-1">
+      <div class="team-name" id="team-name-1">Команда 2</div>
+      <div class="team-score" id="team-score-1">0</div>
+    </div>
+    <div class="team-card t2" id="team-card-2">
+      <div class="team-name" id="team-name-2">Команда 3</div>
+      <div class="team-score" id="team-score-2">0</div>
+    </div>
+  </div>
+
+  <div class="turn-banner" id="turn-banner">Ход: <b>Команда 1</b></div>
+
+  <div class="board-wrap">
+    <div class="board" id="board"></div>
+  </div>
+</section>
+
+<!-- ============================================================
+     ЭКРАН 3 — РЕЗУЛЬТАТЫ
+     ============================================================ -->
+<section class="screen" id="screen-results">
+  <div class="card results-card">
+    <span class="logo-emoji" id="res-emoji">🏁</span>
+    <h1 id="res-title">Игра завершена!</h1>
+    <div class="winner" id="res-winner"></div>
+    <div class="res-teams" id="res-teams"></div>
+    <p class="res-note" id="res-note"></p>
+    <button class="btn btn-primary" id="btn-again">🔄 Играть снова</button>
+  </div>
+</section>
+
+<!-- ============================================================
+     МОДАЛЬНОЕ ОКНО ВОПРОСА
+     ============================================================ -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-top">
+      <span class="cat-badge" id="q-cat">Тема</span>
+      <span class="q-value" id="q-value">100 очков</span>
+      <span class="q-timer" id="q-timer">⏱ 60</span>
+    </div>
+
+    <div class="q-text" id="q-text"></div>
+
+    <div class="answer-box" id="answer-box">
+      <div class="answer-label">✅ Правильный ответ</div>
+      <div id="answer-text"></div>
+    </div>
+
+    <div class="modal-actions" id="modal-actions">
+      <button class="btn btn-primary" id="btn-reveal">👀 Показать ответ</button>
+    </div>
+
+    <div class="modal-actions hidden" id="award-actions">
+      <button class="btn btn-award-0" data-team="0">+ очки команде 1</button>
+      <button class="btn btn-award-1" data-team="1">+ очки команде 2</button>
+      <button class="btn btn-award-2" data-team="2">+ очки команде 3</button>
+      <button class="btn btn-ghost" data-team="-1">Никому</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ============================================================
+   УЧЕБНЫЙ КОНТЕНТ — 6 тем × 7 вопросов = 42 задания
+   Значения: 100, 200, 300, 400, 500, 600, 700
+   ============================================================ */
+const CATEGORIES = [
+  {
+    name: 'Среднее арифметическое',
+    icon: '📊',
+    color: ['#ff2e63', '#ff8a5c'],
+    questions: [
+      {
+        value: 100,
+        q: 'Найдите среднее арифметическое чисел: 4, 6, 8, 10.',
+        a: 'Складываем все числа и делим на их количество: (4 + 6 + 8 + 10) : 4 = 28 : 4 = 7.'
+      },
+      {
+        value: 200,
+        q: 'Ученик получил за четверть оценки: 3, 4, 5, 4, 4. Найдите его средний балл.',
+        a: '(3 + 4 + 5 + 4 + 4) : 5 = 20 : 5 = 4 — средний балл равен 4.'
+      },
+      {
+        value: 300,
+        q: 'Среднее арифметическое чисел 5, 7, 9 и x равно 8. Найдите x.',
+        a: 'Сумма всех чисел: 8 · 4 = 32. Значит, x = 32 − (5 + 7 + 9) = 32 − 21 = 11.'
+      },
+      {
+        value: 400,
+        q: 'Велосипедист ехал 2 часа со скоростью 12 км/ч и 3 часа со скоростью 17 км/ч. Найдите среднюю скорость на всём пути.',
+        a: 'Первый участок: 12 · 2 = 24 км, второй: 17 · 3 = 51 км. Всего 75 км за 5 часов. Средняя скорость = 75 : 5 = 15 км/ч.'
+      },
+      {
+        value: 500,
+        q: 'Среднее арифметическое семи чисел равно 12. К ним добавили число 20. Найдите среднее арифметическое новых восьми чисел.',
+        a: 'Сумма семи чисел: 12 · 7 = 84. С новым числом: 84 + 20 = 104. Среднее: 104 : 8 = 13.'
+      },
+      {
+        value: 600,
+        q: 'Среднее арифметическое двух чисел равно 15, а их разность равна 8. Найдите эти числа.',
+        a: 'Сумма чисел: 15 · 2 = 30. Пусть a − b = 8. Тогда a = (30 + 8) : 2 = 19, b = (30 − 8) : 2 = 11. Числа: 19 и 11.'
+      },
+      {
+        value: 700,
+        q: 'Средний рост 10 баскетболистов — 190 см. Один игрок ростом 195 см ушёл, а вместо него пришёл игрок ростом 205 см. Каков средний рост новой команды?',
+        a: 'Суммарный рост был 190 · 10 = 1900 см. Стал: 1900 − 195 + 205 = 1910 см. Новое среднее: 1910 : 10 = 191 см.'
+      }
+    ]
+  },
+  {
+    name: 'Размах, мода, медиана',
+    icon: '📈',
+    color: ['#08d9d6', '#4facfe'],
+    questions: [
+      {
+        value: 100,
+        q: 'Найдите размах ряда чисел: 5, 8, 3, 12, 7.',
+        a: 'Размах = наибольшее − наименьшее = 12 − 3 = 9.'
+      },
+      {
+        value: 200,
+        q: 'Найдите моду ряда чисел: 2, 3, 3, 5, 7, 3, 9.',
+        a: 'Мода — самое частое число. Число 3 встречается три раза, остальные — по одному. Мода = 3.'
+      },
+      {
+        value: 300,
+        q: 'Для ряда чисел 4, 9, 2, 9, 5, 9, 12 найдите размах и моду.',
+        a: 'Размах = 12 − 2 = 10. Мода = 9 (встречается 3 раза).'
+      },
+      {
+        value: 400,
+        q: 'Дан ряд: 1, 2, 3, 4, 5. Как изменится размах, если добавить к нему число 10?',
+        a: 'Был размах: 5 − 1 = 4. Стал: 10 − 1 = 9. Размах увеличился на 5.'
+      },
+      {
+        value: 500,
+        q: 'Найдите медиану ряда чисел: 3, 5, 1, 9, 7.',
+        a: 'Упорядочим: 1, 3, 5, 7, 9. Медиана — среднее число = 5.'
+      },
+      {
+        value: 600,
+        q: 'Найдите медиану ряда чисел: 8, 3, 5, 7, 4, 6, 2.',
+        a: 'Упорядочим: 2, 3, 4, 5, 6, 7, 8. Среднее (четвёртое) число = 5. Медиана = 5.'
+      },
+      {
+        value: 700,
+        q: 'Дан ряд: 12, 7, 15, 8, 10, 9. Найдите его медиану и размах.',
+        a: 'Упорядочим: 7, 8, 9, 10, 12, 15. Чётное количество (6 чисел) — медиана = (9 + 10) : 2 = 9,5. Размах = 15 − 7 = 8.'
+      }
+    ]
+  },
+  {
+    name: 'Орёл или решка',
+    icon: '🪙',
+    color: ['#ffd93d', '#ff9a3c'],
+    questions: [
+      {
+        value: 100,
+        q: 'Монету подбросили 50 раз, и орёл выпал 23 раза. Найдите частоту выпадения орла.',
+        a: 'Частота = число появлений : общее число испытаний = 23 : 50 = 0,46 (то есть 46%).'
+      },
+      {
+        value: 200,
+        q: 'Монету подбрасывают два раза. Сколько всего равновозможных исходов? Перечислите их.',
+        a: 'Четыре исхода: ОО, ОР, РО, РР. Вероятность каждого исхода равна 1/4 = 0,25.'
+      },
+      {
+        value: 300,
+        q: 'Монету подбросили 200 раз, орёл выпал 104 раза. Найдите частоту выпадения орла и сравните её с 0,5.',
+        a: 'Частота = 104 : 200 = 0,52. Это близко к теоретической вероятности 0,5.'
+      },
+      {
+        value: 400,
+        q: 'Монету подбрасывают три раза. Сколько всего исходов? Какова вероятность, что ровно два раза выпадет орёл?',
+        a: 'Всего 2³ = 8 исходов. Ровно два орла: ООР, ОРО, РОО — 3 исхода. P = 3/8 = 0,375.'
+      },
+      {
+        value: 500,
+        q: 'Монету подбросили 1000 раз, орёл выпал 512 раз. Честная ли монета? Объясните.',
+        a: 'Частота = 512 : 1000 = 0,512 — очень близко к 0,5. Небольшое отклонение объясняется случайностью, монета похожа на честную.'
+      },
+      {
+        value: 600,
+        q: 'Монету подбрасывают 4 раза. Какова вероятность, что ровно один раз выпадет орёл?',
+        a: 'Всего исходов 2⁴ = 16. Ровно один орёл: ОРРР, РОРР, РРОР, РРРО — 4 исхода. P = 4/16 = 1/4 = 0,25.'
+      },
+      {
+        value: 700,
+        q: 'Монету подбросили 500 раз, орёл выпал 260 раз. Насколько частота отличается от 0,5? Случайно ли это?',
+        a: 'Ожидаемое число орлов 250. Получили 260 — отклонение 10. Частота = 260/500 = 0,52, отклонение от 0,5 всего 0,02. Это нормальное случайное отклонение.'
+      }
+    ]
+  },
+  {
+    name: 'Вероятность',
+    icon: '🎯',
+    color: ['#a86bff', '#ff5edb'],
+    questions: [
+      {
+        value: 100,
+        q: 'В коробке 10 шаров: 3 красных и 7 синих. Какова вероятность вытащить наугад красный шар?',
+        a: 'P = (число благоприятных исходов) : (число всех исходов) = 3 : 10 = 0,3.'
+      },
+      {
+        value: 200,
+        q: 'В лотерее 100 билетов, из них 5 выигрышных. Какова вероятность того, что купленный билет окажется проигрышным?',
+        a: 'Проигрышных билетов 100 − 5 = 95. P = 95 : 100 = 0,95.'
+      },
+      {
+        value: 300,
+        q: 'Бросают игральный кубик. Какова вероятность того, что выпадет чётное число?',
+        a: 'Чётные числа: 2, 4, 6 — три исхода из шести. P = 3/6 = 0,5.'
+      },
+      {
+        value: 400,
+        q: 'В классе 25 учеников: 12 девочек и 13 мальчиков. Какова вероятность, что случайно выбранный ученик — девочка?',
+        a: 'P = 12 : 25 = 0,48.'
+      },
+      {
+        value: 500,
+        q: 'В урне 5 белых и 7 чёрных шаров. Вынимают один шар. Какова вероятность, что он белый или чёрный?',
+        a: 'Все шары либо белые, либо чёрные — событие достоверное. P = 12 : 12 = 1.'
+      },
+      {
+        value: 600,
+        q: 'В урне 5 белых и 7 чёрных шаров. Наугад вынимают один шар. Какова вероятность, что он белый?',
+        a: 'Всего шаров 5 + 7 = 12. Белых 5. P = 5 : 12 ≈ 0,417.'
+      },
+      {
+        value: 700,
+        q: 'Из колоды в 36 карт наугад вынимают одну карту. Какова вероятность, что это карта пиковой масти?',
+        a: 'В колоде 4 масти по 9 карт. Пиковых карт — 9. P = 9 : 36 = 1/4 = 0,25.'
+      }
+    ]
+  },
+  {
+    name: 'Случайные события',
+    icon: '🎲',
+    color: ['#00e08a', '#08d9d6'],
+    questions: [
+      {
+        value: 100,
+        q: 'При бросании игрального кубика выпало число от 1 до 6. Какое это событие — случайное, достоверное или невозможное? Чему равна его вероятность?',
+        a: 'Это событие достоверное: на кубике всегда выпадает от 1 до 6. Его вероятность равна 1.'
+      },
+      {
+        value: 200,
+        q: 'Какова вероятность того, что при бросании игрального кубика выпадет число больше 4?',
+        a: 'Благоприятные исходы: 5 и 6 — их 2 из 6. P = 2/6 = 1/3 ≈ 0,33.'
+      },
+      {
+        value: 300,
+        q: 'Из колоды в 36 карт наугад вынимают одну карту. Какова вероятность, что это туз?',
+        a: 'В колоде 4 туза. P = 4 : 36 = 1/9 ≈ 0,11.'
+      },
+      {
+        value: 400,
+        q: 'Определите вид события: а) «завтра взойдёт солнце»; б) «на игральном кубике выпадет 7».',
+        a: 'а) достоверное (P = 1); б) невозможное (P = 0).'
+      },
+      {
+        value: 500,
+        q: 'В ящике 3 красных, 2 зелёных и 5 синих шаров. Наугад достают один шар. Какова вероятность, что он НЕ красный?',
+        a: 'Всего шаров: 3 + 2 + 5 = 10. Некрасных: 2 + 5 = 7. P = 7 : 10 = 0,7.'
+      },
+      {
+        value: 600,
+        q: 'В коробке 20 конфет, из них 8 — с орехом. Какова вероятность, что случайно взятая конфета окажется БЕЗ ореха?',
+        a: 'Конфет без ореха: 20 − 8 = 12. P = 12 : 20 = 0,6.'
+      },
+      {
+        value: 700,
+        q: 'Определите вид и вероятность события: а) «на кубике выпадет больше 6»; б) «на кубике выпадет 3 или 4».',
+        a: 'а) Невозможное событие, P = 0. б) Благоприятных исходов 2 из 6, P = 2/6 = 1/3 ≈ 0,33.'
+      }
+    ]
+  },
+  {
+    name: 'Статистика вокруг нас',
+    icon: '📋',
+    color: ['#ff6ec7', '#a86bff'],
+    questions: [
+      {
+        value: 100,
+        q: 'За контрольную работу ученики получили оценки: 5, 4, 3, 5, 4, 5. Найдите средний балл класса.',
+        a: 'Сумма оценок: 5 + 4 + 3 + 5 + 4 + 5 = 26. Количество: 6. Средний балл = 26 : 6 ≈ 4,33.'
+      },
+      {
+        value: 200,
+        q: 'В магазине цены на ручки: 50, 60, 70, 80, 100 рублей. Найдите размах цен.',
+        a: 'Размах = 100 − 50 = 50 рублей.'
+      },
+      {
+        value: 300,
+        q: 'Температура воздуха за неделю: 15, 17, 16, 18, 20, 19, 16 °C. Найдите моду.',
+        a: 'Чаще всего встречается 16 °C (2 раза). Мода = 16 °C.'
+      },
+      {
+        value: 400,
+        q: 'Опросили 20 учеников: у 8 есть кот, у 5 — собака, у 7 — никого. Какова вероятность, что у случайного ученика есть кот?',
+        a: 'P = 8 : 20 = 0,4.'
+      },
+      {
+        value: 500,
+        q: 'В классе 25 человек: 10 отличников, 12 хорошистов и 3 троечника. Какова вероятность, что случайно выбранный ученик НЕ отличник?',
+        a: 'Не отличников: 25 − 10 = 15. P = 15 : 25 = 0,6.'
+      },
+      {
+        value: 600,
+        q: 'Три магазина продали за день: 120, 85 и 95 товаров. Найдите среднее число проданных товаров в день.',
+        a: 'Сумма: 120 + 85 + 95 = 300. Среднее: 300 : 3 = 100 товаров.'
+      },
+      {
+        value: 700,
+        q: 'Из 200 опрошенных учеников 40 занимаются спортом. Найдите частоту этого события и вероятность в процентах.',
+        a: 'Частота = 40 : 200 = 0,2. В процентах: 0,2 · 100% = 20%.'
+      }
+    ]
+  }
+];
+
+/* ============================================================
+   КОНСТАНТЫ И СОСТОЯНИЕ
+   ============================================================ */
+const GAME_TIME   = 60 * 60;   // 60 минут на игру
+const Q_TIME      = 60;        // 60 секунд на вопрос
+const TEAM_COUNT  = 3;
+const STORAGE_KEY = 'svoya_igra_ver_stat_v3_42q';
+
+let state       = null;   // игровое состояние
+let gameTimerId = null;   // таймер игры
+let qTimerId    = null;   // таймер вопроса
+let qTimeLeft   = 0;
+let current     = null;   // текущий открытый вопрос {ci, qi, value}
+
+const $ = id => document.getElementById(id);
+
+/* ============================================================
+   ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+   ============================================================ */
+function fmtTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[ch]);
+}
+
+function totalQuestions() {
+  return CATEGORIES.reduce((sum, c) => sum + c.questions.length, 0);
+}
+
+function answeredCount() {
+  return state.answered.flat().filter(Boolean).length;
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ============================================================
+   СОХРАНЕНИЕ / ЗАГРУЗКА (localStorage)
+   ============================================================ */
+function save() {
+  if (!state) return;
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* нет доступа */ }
+}
+
+function loadSave() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (!data || !data.teams || data.teams.length !== TEAM_COUNT || data.finished) return null;
+    return data;
+  } catch (e) { return null; }
+}
+
+function clearSave() {
+  try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* игнорируем */ }
+}
+
+/* ============================================================
+   СОЗДАНИЕ НОВОЙ ИГРЫ
+   ============================================================ */
+function createNewGame(names) {
+  state = {
+    teams: names.map((n, i) => ({ name: n || ('Команда ' + (i + 1)), score: 0 })),
+    turn: 0,
+    answered: CATEGORIES.map(c => c.questions.map(() => false)),
+    timeLeft: GAME_TIME,
+    finished: false
+  };
+}
+
+/* ============================================================
+   ЗАПУСК ИГРОВОГО ЭКРАНА
+   ============================================================ */
+function startGameScreen() {
+  showScreen('screen-game');
+  buildBoard();
+  updateHUD();
+  startGameTimer();
+}
+
+/* ============================================================
+   ПОСТРОЕНИЕ ИГРОВОГО ПОЛЯ
+   ============================================================ */
+function buildBoard() {
+  const board = $('board');
+  board.innerHTML = '';
+
+  CATEGORIES.forEach((cat, ci) => {
+    const col = document.createElement('div');
+    col.className = 'cat-col';
+    col.style.setProperty('--a', cat.color[0]);
+    col.style.setProperty('--b', cat.color[1]);
+
+    const title = document.createElement('div');
+    title.className = 'cat-title';
+    title.innerHTML = `<span class="cat-icon">${cat.icon}</span><span>${escapeHtml(cat.name)}</span>`;
+    col.appendChild(title);
+
+    cat.questions.forEach((q, qi) => {
+      const btn = document.createElement('button');
+      btn.className = 'q-btn';
+      btn.type = 'button';
+
+      if (state.answered[ci][qi]) {
+        btn.textContent = '✓';
+        btn.disabled = true;
+      } else {
+        btn.textContent = q.value;
+        btn.addEventListener('click', () => openQuestion(ci, qi));
+      }
+      col.appendChild(btn);
+    });
+
+    board.appendChild(col);
+  });
+}
+
+/* ============================================================
+   ОБНОВЛЕНИЕ ИНТЕРФЕЙСА (счёт, ход, прогресс, таймер)
+   ============================================================ */
+function updateHUD() {
+  // Таймер игры
+  const timerEl = $('hud-timer');
+  timerEl.textContent = fmtTime(state.timeLeft);
+  timerEl.classList.toggle('low', state.timeLeft <= 300);
+
+  // Прогресс
+  const done = answeredCount();
+  const total = totalQuestions();
+  $('progress-fill').style.width = (done / total * 100) + '%';
+  $('progress-text').textContent = done + ' / ' + total;
+
+  // Команды
+  for (let i = 0; i < TEAM_COUNT; i++) {
+    $('team-name-' + i).textContent = state.teams[i].name;
+    $('team-score-' + i).textContent = state.teams[i].score;
+    $('team-card-' + i).classList.toggle('active', state.turn === i && !state.finished);
+  }
+
+  // Баннер хода
+  $('turn-banner').innerHTML = 'Ход: <b>' + escapeHtml(state.teams[state.turn].name) + '</b>';
+}
+
+/* ============================================================
+   ТАЙМЕР ИГРЫ (60 минут)
+   ============================================================ */
+function startGameTimer() {
+  clearInterval(gameTimerId);
+  gameTimerId = setInterval(() => {
+    if (!state || state.finished) return;
+
+    state.timeLeft--;
+    if (state.timeLeft <= 0) {
+      state.timeLeft = 0;
+      updateHUD();
+      endGame('time');
+      return;
+    }
+    updateHUD();
+    if (state.timeLeft % 5 === 0) save();
+  }, 1000);
+}
+
+/* ============================================================
+   ТАЙМЕР ВОПРОСА (60 секунд)
+   ============================================================ */
+function startQuestionTimer() {
+  stopQuestionTimer();
+  qTimeLeft = Q_TIME;
+  updateQTimer();
+
+  qTimerId = setInterval(() => {
+    qTimeLeft--;
+    updateQTimer();
+    if (qTimeLeft <= 0) {
+      stopQuestionTimer();
+      revealAnswer();   // время вышло — показываем ответ
+    }
+  }, 1000);
+}
+
+function updateQTimer() {
+  const el = $('q-timer');
+  el.textContent = '⏱ ' + qTimeLeft;
+  el.classList.toggle('low', qTimeLeft <= 10);
+}
+
+function stopQuestionTimer() {
+  clearInterval(qTimerId);
+  qTimerId = null;
+}
+
+/* ============================================================
+   ОТКРЫТИЕ ВОПРОСА
+   ============================================================ */
+function openQuestion(ci, qi) {
+  if (!state || state.finished) return;
+  if (state.answered[ci][qi]) return;
+
+  const cat = CATEGORIES[ci];
+  const q = cat.questions[qi];
+  current = { ci, qi, value: q.value };
+
+  $('q-cat').textContent = cat.icon + ' ' + cat.name;
+  $('q-value').textContent = q.value + ' очков';
+  $('q-text').textContent = q.q;
+  $('answer-text').textContent = q.a;
+
+  $('answer-box').classList.remove('show');
+  $('modal-actions').classList.remove('hidden');
+  $('award-actions').classList.add('hidden');
+
+  $('modal').classList.add('show');
+  startQuestionTimer();
+}
+
+/* ============================================================
+   ПОКАЗ ОТВЕТА
+   ============================================================ */
+function revealAnswer() {
+  if (!current) return;
+  stopQuestionTimer();
+
+  $('answer-box').classList.add('show');
+  $('modal-actions').classList.add('hidden');
+  $('award-actions').classList.remove('hidden');
+
+  // Обновляем подписи кнопок начисления очков
+  for (let i = 0; i < TEAM_COUNT; i++) {
+    const btn = document.querySelector('[data-team="' + i + '"]');
+    if (btn) btn.textContent = '+' + current.value + ' — ' + state.teams[i].name;
+  }
+}
+
+/* ============================================================
+   НАЧИСЛЕНИЕ ОЧКОВ
+   ============================================================ */
+function award(teamIndex) {
+  if (!current || !state) return;
+
+  if (teamIndex >= 0 && teamIndex < TEAM_COUNT) {
+    state.teams[teamIndex].score += current.value;
+  }
+
+  state.answered[current.ci][current.qi] = true;
+  current = null;
+
+  closeModal();
+  state.turn = (state.turn + 1) % TEAM_COUNT;   // ход переходит следующей команде
+
+  buildBoard();
+  updateHUD();
+  save();
+
+  // Все вопросы отыграны — завершаем
+  if (answeredCount() === totalQuestions()) {
+    setTimeout(() => endGame('all'), 350);
+  }
+}
+
+function closeModal() {
+  stopQuestionTimer();
+  $('modal').classList.remove('show');
+}
+
+/* ============================================================
+   ЗАВЕРШЕНИЕ ИГРЫ
+   ============================================================ */
+function endGame(reason) {
+  if (!state || state.finished) return;
+
+  state.finished = true;
+  clearInterval(gameTimerId);
+  gameTimerId = null;
+  stopQuestionTimer();
+  $('modal').classList.remove('show');
+  clearSave();
+
+  // Заголовок
+  if (reason === 'time') {
+    $('res-emoji').textContent = '⏰';
+    $('res-title').textContent = 'Время вышло!';
+  } else {
+    $('res-emoji').textContent = '🏁';
+    $('res-title').textContent = 'Игра завершена!';
+  }
+
+  // Сортируем команды по очкам
+  const sorted = state.teams
+    .map((t, i) => ({ ...t, originalIndex: i }))
+    .sort((a, b) => b.score - a.score);
+
+  // Победитель
+  const top = sorted[0];
+  const ties = sorted.filter(t => t.score === top.score);
+  let winnerText;
+  if (ties.length === 1) {
+    winnerText = '🏆 Победа: ' + top.name;
+  } else if (ties.length === TEAM_COUNT) {
+    winnerText = '🤝 Ничья! Отличная игра!';
+  } else {
+    winnerText = '🤝 Ничья: ' + ties.map(t => t.name).join(' и ');
+  }
+  $('res-winner').textContent = winnerText;
+
+  // Таблица результатов с местами
+  const maxScore = Math.max(1, ...state.teams.map(t => Math.abs(t.score)));
+  const medals = ['🥇', '🥈', '🥉'];
+  const grads = [
+    'linear-gradient(90deg,#ff2e63,#ff8a5c)',
+    'linear-gradient(90deg,#08d9d6,#4facfe)',
+    'linear-gradient(90deg,#a86bff,#ff5edb)'
+  ];
+
+  // Определяем место каждой команды (с учётом ничьих)
+  const rankByOriginal = {};
+  let prevScore = null, prevRank = 0;
+  sorted.forEach((t, idx) => {
+    const rank = (t.score === prevScore) ? prevRank : idx + 1;
+    rankByOriginal[t.originalIndex] = rank;
+    prevScore = t.score;
+    prevRank = rank;
+  });
+
+  $('res-teams').innerHTML = state.teams.map((team, i) => {
+    const rank = rankByOriginal[i];
+    const width = Math.max(0, team.score) / maxScore * 100;
+    const medal = rank <= 3 ? medals[rank - 1] : '';
+    const rankClass = rank === 1 ? ' rank-1' : '';
+    return `
+      <div class="res-team${rankClass}">
+        <div class="res-team-head">
+          <div class="res-team-name"><span class="res-rank">${medal}</span>${escapeHtml(team.name)}</div>
+          <div style="font-size:.78rem;color:var(--muted);font-weight:700;">${rank} место</div>
+        </div>
+        <div class="res-team-score">${team.score} очков</div>
+        <div class="res-bar"><div class="res-bar-fill" style="width:${width}%;background:${grads[i % grads.length]}"></div></div>
+      </div>`;
+  }).join('');
+
+  // Пояснение
+  $('res-note').innerHTML = reason === 'time'
+    ? 'Игра остановлена по времени. Отыграно вопросов: <b>' + answeredCount() + ' из ' + totalQuestions() + '</b>.'
+    : 'Все вопросы отыграны! Повторите среднее арифметическое, размах, моду и вероятность — и вы готовы к контрольной. 💪';
+
+  showScreen('screen-results');
+}
+
+/* ============================================================
+   ОБРАБОТЧИКИ СОБЫТИЙ
+   ============================================================ */
+
+// Старт новой игры
+$('btn-start').addEventListener('click', () => {
+  const names = [
+    $('team1').value.trim() || 'Команда 1',
+    $('team2').value.trim() || 'Команда 2',
+    $('team3').value.trim() || 'Команда 3'
+  ];
+  createNewGame(names);
+  save();
+  startGameScreen();
+});
+
+// Продолжение сохранённой игры
+$('btn-continue').addEventListener('click', () => {
+  const saved = loadSave();
+  if (!saved) return;
+  state = saved;
+  startGameScreen();
+});
+
+// Новая игра из игрового экрана
+$('btn-new').addEventListener('click', () => {
+  if (confirm('Начать новую игру? Текущий прогресс будет потерян.')) {
+    clearInterval(gameTimerId);
+    stopQuestionTimer();
+    closeModal();
+    clearSave();
+    state = null;
+    showScreen('screen-start');
+    checkSavedGame();
+  }
+});
+
+// Показать ответ
+$('btn-reveal').addEventListener('click', revealAnswer);
+
+// Кнопки начисления очков
+document.querySelectorAll('[data-team]').forEach(btn => {
+  btn.addEventListener('click', () => award(parseInt(btn.dataset.team, 10)));
+});
+
+// Играть снова
+$('btn-again').addEventListener('click', () => {
+  state = null;
+  showScreen('screen-start');
+  checkSavedGame();
+});
+
+// Пауза таймера при уходе со страницы (экономия ресурсов)
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && state && !state.finished) save();
+});
+
+/* ============================================================
+   ПРОВЕРКА НАЛИЧИЯ СОХРАНЕНИЯ
+   ============================================================ */
+function checkSavedGame() {
+  const saved = loadSave();
+  $('btn-continue').style.display = saved ? 'block' : 'none';
+}
+
+/* ============================================================
+   ИНИЦИАЛИЗАЦИЯ
+   ============================================================ */
+checkSavedGame();
+</script>
+</body>
+</html>
